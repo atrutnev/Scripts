@@ -1,4 +1,4 @@
-rem Для работы на Windows XP требуется установить Resource Kit Tools для Windows Server 2003.
+я╗┐rem ╨Ф╨╗╤П ╤А╨░╨▒╨╛╤В╤Л ╨╜╨░ Windows XP ╤В╤А╨╡╨▒╤Г╨╡╤В╤Б╤П ╤Г╤Б╤В╨░╨╜╨╛╨▓╨╕╤В╤М Resource Kit Tools ╨┤╨╗╤П Windows Server 2003.
 
 @echo off
 setlocal enableextensions
@@ -18,28 +18,28 @@ set unc_NAS=\\192.168.0.225
 
 echo %date% %time%> %logfile%
 
-rem Определяем съёмный диск
+rem ╨Ю╨┐╤А╨╡╨┤╨╡╨╗╤П╨╡╨╝ ╤Б╤К╤С╨╝╨╜╤Л╨╣ ╨┤╨╕╤Б╨║
 mountvol |>nul find /i "%volume1%" && ( set volume=%volume1% && goto mount ) || ( goto volume2 )
 :volume2
-mountvol |>nul find /i "%volume2%" && ( set volume=%volume2% && goto mount ) || ( echo Не найдено доступных съёмных дисков для монтирования! >> %logfile% && exit )
+mountvol |>nul find /i "%volume2%" && ( set volume=%volume2% && goto mount ) || ( echo ╨Э╨╡ ╨╜╨░╨╣╨┤╨╡╨╜╨╛ ╨┤╨╛╤Б╤В╤Г╨┐╨╜╤Л╤Е ╤Б╤К╤С╨╝╨╜╤Л╤Е ╨┤╨╕╤Б╨║╨╛╨▓ ╨┤╨╗╤П ╨╝╨╛╨╜╤В╨╕╤А╨╛╨▓╨░╨╜╨╕╤П! >> %logfile% && exit )
 
 :mount
-rem Подключаем съёмный диск через TrueCrypt
+rem ╨Я╨╛╨┤╨║╨╗╤О╤З╨░╨╡╨╝ ╤Б╤К╤С╨╝╨╜╤Л╨╣ ╨┤╨╕╤Б╨║ ╤З╨╡╤А╨╡╨╖ TrueCrypt
 "%truecrypt_path%\truecrypt.exe" /q /v %volume% /lm /b /k %key% /p %volume_password%
 sleep 3
-rem Проверим подключение съёмного диска
-if not exist %disk%\nul ( echo Диск не подключен! >> %logfile% && exit )
+rem ╨Я╤А╨╛╨▓╨╡╤А╨╕╨╝ ╨┐╨╛╨┤╨║╨╗╤О╤З╨╡╨╜╨╕╨╡ ╤Б╤К╤С╨╝╨╜╨╛╨│╨╛ ╨┤╨╕╤Б╨║╨░
+if not exist %disk%\nul ( echo ╨Ф╨╕╤Б╨║ ╨╜╨╡ ╨┐╨╛╨┤╨║╨╗╤О╤З╨╡╨╜! >> %logfile% && exit )
 
-rem Проверим, существует ли файл настроек копирования
-if not exist %file_settings_backup% ( echo Файл настроек копирования %file_settings_backup% не найден! >> %logfile% && exit )
+rem ╨Я╤А╨╛╨▓╨╡╤А╨╕╨╝, ╤Б╤Г╤Й╨╡╤Б╤В╨▓╤Г╨╡╤В ╨╗╨╕ ╤Д╨░╨╣╨╗ ╨╜╨░╤Б╤В╤А╨╛╨╡╨║ ╨║╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╤П
+if not exist %file_settings_backup% ( echo ╨д╨░╨╣╨╗ ╨╜╨░╤Б╤В╤А╨╛╨╡╨║ ╨║╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╤П %file_settings_backup% ╨╜╨╡ ╨╜╨░╨╣╨┤╨╡╨╜! >> %logfile% && exit )
 
 :net_test
-rem Проверим сетевое соединение с NAS
-ping -n 2 %ip_NAS% |>nul find /i "TTL=" && ( echo Соединение c NAS установлено %date% %time%>> %logfile% && goto rm_files ) || ( ping 127.1 -n 2& echo Повторная попытка... >> %logfile%& goto net_test)
+rem ╨Я╤А╨╛╨▓╨╡╤А╨╕╨╝ ╤Б╨╡╤В╨╡╨▓╨╛╨╡ ╤Б╨╛╨╡╨┤╨╕╨╜╨╡╨╜╨╕╨╡ ╤Б NAS
+ping -n 2 %ip_NAS% |>nul find /i "TTL=" && ( echo ╨б╨╛╨╡╨┤╨╕╨╜╨╡╨╜╨╕╨╡ c NAS ╤Г╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜╨╛ %date% %time%>> %logfile% && goto rm_files ) || ( ping 127.1 -n 2& echo ╨Я╨╛╨▓╤В╨╛╤А╨╜╨░╤П ╨┐╨╛╨┐╤Л╤В╨║╨░... >> %logfile%& goto net_test)
 
 
 :rm_files
-rem Выполняем удаление со съёмного диска файлов старше 14 дней и пустых каталогов.
+rem ╨Т╤Л╨┐╨╛╨╗╨╜╤П╨╡╨╝ ╤Г╨┤╨░╨╗╨╡╨╜╨╕╨╡ ╤Б╨╛ ╤Б╤К╤С╨╝╨╜╨╛╨│╨╛ ╨┤╨╕╤Б╨║╨░ ╤Д╨░╨╣╨╗╨╛╨▓ ╤Б╤В╨░╤А╤И╨╡ 14 ╨┤╨╜╨╡╨╣ ╨╕ ╨┐╤Г╤Б╤В╤Л╤Е ╨║╨░╤В╨░╨╗╨╛╨│╨╛╨▓.
 for /d %%B in (%disk%\*) do echo %%B>> %dirlist%
 for /f "tokens=*" %%a in (%dirlist%) do (
 	forfiles /p "%%a" /s /m *.* /d -14 /c "cmd /c del /q @path"
@@ -48,62 +48,62 @@ for /f "tokens=*" %%a in (%dirlist%) do (
 )
 del /q %dirlist%
 
-rem Копируем файлы с NAS хранилища в соответствии с параметрами из файла настроек
+rem ╨Ъ╨╛╨┐╨╕╤А╤Г╨╡╨╝ ╤Д╨░╨╣╨╗╤Л ╤Б NAS ╤Е╤А╨░╨╜╨╕╨╗╨╕╤Й╨░ ╨▓ ╤Б╨╛╨╛╤В╨▓╨╡╤В╤Б╤В╨▓╨╕╨╕ ╤Б ╨┐╨░╤А╨░╨╝╨╡╤В╤А╨░╨╝╨╕ ╨╕╨╖ ╤Д╨░╨╣╨╗╨░ ╨╜╨░╤Б╤В╤А╨╛╨╡╨║
 for /f "eol=; tokens=1,2,3,4 delims=:" %%i in (%file_settings_backup%) do (
 	robocopy "%unc_NAS%\%%i" "%disk%\%%j" /S /LOG+:%logfile% /NDL /NJS /NP /TEE /MAXAGE:%%k /XF %%l
 )
 echo. >> %logfile%
 
 rem --------------------------------------------------------------------------------------------------------------------------
-rem ---Резервное копирование архивов каталога _DOC и Электронных досье с сервера PRILOG выполняется отдельно в этой секции!---
-rem -----------------------------Это связано с добавочным механизмом создания архивов!----------------------------------------
+rem ---╨а╨╡╨╖╨╡╤А╨▓╨╜╨╛╨╡ ╨║╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨░╤А╤Е╨╕╨▓╨╛╨▓ ╨║╨░╤В╨░╨╗╨╛╨│╨░ _DOC ╨╕ ╨н╨╗╨╡╨║╤В╤А╨╛╨╜╨╜╤Л╤Е ╨┤╨╛╤Б╤М╨╡ ╤Б ╤Б╨╡╤А╨▓╨╡╤А╨░ PRILOG ╨▓╤Л╨┐╨╛╨╗╨╜╤П╨╡╤В╤Б╤П ╨╛╤В╨┤╨╡╨╗╤М╨╜╨╛ ╨▓ ╤Н╤В╨╛╨╣ ╤Б╨╡╨║╤Ж╨╕╨╕!---
+rem -----------------------------╨н╤В╨╛ ╤Б╨▓╤П╨╖╨░╨╜╨╛ ╤Б ╨┤╨╛╨▒╨░╨▓╨╛╤З╨╜╤Л╨╝ ╨╝╨╡╤Е╨░╨╜╨╕╨╖╨╝╨╛╨╝ ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П ╨░╤А╤Е╨╕╨▓╨╛╨▓!----------------------------------------
 rem --------------------------------------------------------------------------------------------------------------------------
 
-echo Начинаем копирование архивов каталога _DOC...>> %logfile%
+echo ╨Э╨░╤З╨╕╨╜╨░╨╡╨╝ ╨║╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨░╤А╤Е╨╕╨▓╨╛╨▓ ╨║╨░╤В╨░╨╗╨╛╨│╨░ _DOC...>> %logfile%
 
 set dir_name=\\192.168.0.225\akcia-backup\server\Prilog\
 set disk_dir_name=%disk%\Prilog\
 
-rem Находим последнюю полную копию
-for /f "tokens=*" %%i in ('dir "%dir_name%" /b /o:d /a:-d ^| findstr "_DOC.*Полный"') do set full_copy_name=%%i
+rem ╨Э╨░╤Е╨╛╨┤╨╕╨╝ ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╤О╤О ╨┐╨╛╨╗╨╜╤Г╤О ╨║╨╛╨┐╨╕╤О
+for /f "tokens=*" %%i in ('dir "%dir_name%" /b /o:d /a:-d ^| findstr "_DOC.*╨Я╨╛╨╗╨╜╤Л╨╣"') do set full_copy_name=%%i
 
-rem Получаем дату создания последней полной копии
-for /f "tokens=1" %%i in ('dir /T:C "%dir_name%%full_copy_name%" ^| findstr "_DOC.*Полный"') do set date_cr=%%i
+rem ╨Я╨╛╨╗╤Г╤З╨░╨╡╨╝ ╨┤╨░╤В╤Г ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╨╡╨╣ ╨┐╨╛╨╗╨╜╨╛╨╣ ╨║╨╛╨┐╨╕╨╕
+for /f "tokens=1" %%i in ('dir /T:C "%dir_name%%full_copy_name%" ^| findstr "_DOC.*╨Я╨╛╨╗╨╜╤Л╨╣"') do set date_cr=%%i
 
-rem Преобразуем дату последней полной копии в формат, понятный robocopy
+rem ╨Я╤А╨╡╨╛╨▒╤А╨░╨╖╤Г╨╡╨╝ ╨┤╨░╤В╤Г ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╨╡╨╣ ╨┐╨╛╨╗╨╜╨╛╨╣ ╨║╨╛╨┐╨╕╨╕ ╨▓ ╤Д╨╛╤А╨╝╨░╤В, ╨┐╨╛╨╜╤П╤В╨╜╤Л╨╣ robocopy
 for /f "tokens=1,2,3 delims=." %%a in ( "%date_cr%" ) do set date_cr=%%c%%b%%a
 
-rem Копирование полной копии
+rem ╨Ъ╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┐╨╛╨╗╨╜╨╛╨╣ ╨║╨╛╨┐╨╕╨╕
 if not exist "%disk_dir_name%%full_copy_name%" (
-	echo Файл последней полной копии отсутствует! >> %logfile%
+	echo ╨д╨░╨╣╨╗ ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╨╡╨╣ ╨┐╨╛╨╗╨╜╨╛╨╣ ╨║╨╛╨┐╨╕╨╕ ╨╛╤В╤Б╤Г╤В╤Б╤В╨▓╤Г╨╡╤В! >> %logfile%
 	robocopy %dir_name% %disk_dir_name% "%full_copy_name%" /LOG+:%logfile% /NDL /NJS /NP /TEE
 ) else (
-	echo Найдена последняя полная копия "%full_copy_name%", пропуск... >> %logfile%
+	echo ╨Э╨░╨╣╨┤╨╡╨╜╨░ ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╤П╤П ╨┐╨╛╨╗╨╜╨░╤П ╨║╨╛╨┐╨╕╤П "%full_copy_name%", ╨┐╤А╨╛╨┐╤Г╤Б╨║... >> %logfile%
 )
 
 echo. >> %logfile%
-echo Копирование добавочных архивов _DOC...>> %logfile%
-rem Копирование добавочных копий
-	robocopy %dir_name% %disk_dir_name% "_DOC*Добавочный*" /LOG+:%logfile% /NDL /NJS /NP /TEE /MAXAGE:%date_cr% 
+echo ╨Ъ╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┤╨╛╨▒╨░╨▓╨╛╤З╨╜╤Л╤Е ╨░╤А╤Е╨╕╨▓╨╛╨▓ _DOC...>> %logfile%
+rem ╨Ъ╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┤╨╛╨▒╨░╨▓╨╛╤З╨╜╤Л╤Е ╨║╨╛╨┐╨╕╨╣
+	robocopy %dir_name% %disk_dir_name% "_DOC*╨Ф╨╛╨▒╨░╨▓╨╛╤З╨╜╤Л╨╣*" /LOG+:%logfile% /NDL /NJS /NP /TEE /MAXAGE:%date_cr% 
 
 
 echo. >> %logfile%
-echo Начинаем копирование архива Электронных досье...>> %logfile%
-rem Находим последнюю полную копию
-for /f "tokens=*" %%i in ('dir "%dir_name%" /b /o:d /a:-d ^| findstr ".*досье*"') do set full_copy_name=%%i
+echo ╨Э╨░╤З╨╕╨╜╨░╨╡╨╝ ╨║╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨░╤А╤Е╨╕╨▓╨░ ╨н╨╗╨╡╨║╤В╤А╨╛╨╜╨╜╤Л╤Е ╨┤╨╛╤Б╤М╨╡...>> %logfile%
+rem ╨Э╨░╤Е╨╛╨┤╨╕╨╝ ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╤О╤О ╨┐╨╛╨╗╨╜╤Г╤О ╨║╨╛╨┐╨╕╤О
+for /f "tokens=*" %%i in ('dir "%dir_name%" /b /o:d /a:-d ^| findstr ".*╨┤╨╛╤Б╤М╨╡*"') do set full_copy_name=%%i
 
-rem Копирование полной копии
+rem ╨Ъ╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┐╨╛╨╗╨╜╨╛╨╣ ╨║╨╛╨┐╨╕╨╕
 if not exist "%disk_dir_name%%full_copy_name%" (
-	echo Файл последней полной копии не найден! >> %logfile%
+	echo ╨д╨░╨╣╨╗ ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╨╡╨╣ ╨┐╨╛╨╗╨╜╨╛╨╣ ╨║╨╛╨┐╨╕╨╕ ╨╜╨╡ ╨╜╨░╨╣╨┤╨╡╨╜! >> %logfile%
 	robocopy %dir_name% %disk_dir_name% "%full_copy_name%" /LOG+:%logfile% /NDL /NJS /NP /TEE
 ) else (
-	echo Найдена последняя полная копия "%full_copy_name%", пропуск... >> %logfile%
+	echo ╨Э╨░╨╣╨┤╨╡╨╜╨░ ╨┐╨╛╤Б╨╗╨╡╨┤╨╜╤П╤П ╨┐╨╛╨╗╨╜╨░╤П ╨║╨╛╨┐╨╕╤П "%full_copy_name%", ╨┐╤А╨╛╨┐╤Г╤Б╨║... >> %logfile%
 )
 
 echo. >> %logfile%
-echo Копирование файлов на съёмный жёсткий диск завершено %date% в %time%.>> %logfile%
+echo ╨Ъ╨╛╨┐╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╤Д╨░╨╣╨╗╨╛╨▓ ╨╜╨░ ╤Б╤К╤С╨╝╨╜╤Л╨╣ ╨╢╤С╤Б╤В╨║╨╕╨╣ ╨┤╨╕╤Б╨║ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨╛ %date% ╨▓ %time%.>> %logfile%
 
-rem Отлючаем съёмный жёсткий диск через TrueCrypt
+rem ╨Ю╤В╨╗╤О╤З╨░╨╡╨╝ ╤Б╤К╤С╨╝╨╜╤Л╨╣ ╨╢╤С╤Б╤В╨║╨╕╨╣ ╨┤╨╕╤Б╨║ ╤З╨╡╤А╨╡╨╖ TrueCrypt
 "%truecrypt_path%\truecrypt.exe" /q /dm
 
 
