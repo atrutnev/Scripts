@@ -1,0 +1,62 @@
+#!/bin/bash
+
+ZHOME=/opt/zimbra
+ZBACKUP=/opt/zimbra/backup/post
+DATE=`date +"%y%m%d"`
+ZDUMPDIR=$ZBACKUP/"$DATE"_full
+ZMDUMP=/opt/zimbra/mysql/bin/mysqldump
+ZMYSQL=/opt/zimbra/mysql/bin/mysql
+ZMBOX=/opt/zimbra/bin/zmmailbox
+ZMPROV=/opt/zimbra/bin/zmprov
+FORMAT=tgz
+
+if [ ! -d $ZDUMPDIR ]; then
+        mkdir -p $ZDUMPDIR/{ldap,mysql,mailbox}
+fi
+
+# LDAP Backup
+$ZHOME/libexec/zmslapcat $ZDUMPDIR/ldap
+$ZHOME/libexec/zmslapcat -c $ZDUMPDIR/ldap
+$ZHOME/libexec/zmslapcat -a $ZDUMPDIR/ldap
+$ZHOME/openldap/bin/mdb_copy $ZHOME/data/ldap/mdb/db $ZDUMPDIR/ldap
+
+source ~/bin/zmshutil ; zmsetvars
+
+#
+## Backup zimbra main database
+#
+
+$ZMDUMP zimbra -S $mysql_socket -u root --password=$mysql_root_password | gzip -9 - > $ZDUMPDIR/mysql/zimbra.sql.gz
+
+#
+## Backup zimbra main mboxes database
+#
+$ZMYSQL -S $mysql_socket -u root --password=$mysql_root_password --batch --skip-column-names -e "show databases" | grep -e mbox -e zimbra > /tmp/mysql.db.list
+for db in `cat /tmp/mysql.db.list`; do
+        $ZMDUMP $db -S $mysql_socket -u root --password=$mysql_root_password | gzip -9 - > $ZDUMPDIR/mysql/$db.sql.gz
+    echo "Dumped $db"
+done
+
+# If you dont pass any argument, then I'll backup just what happened from yesterday. If you do, I'll perform a full backup of the account.
+if [ $# -eq 0 ]; then
+ qd=`date +"%m/%d/%Y"`
+ query="&query="
+fi
+
+# Querying for the accounts then backing up 
+for mbox in `$ZMPROV -l gaa`
+do
+	$ZMBOX -z -m $mbox getRestURL "//?fmt=${FORMAT}$query" > $ZDUMPDIR/mailbox/$mbox.${FORMAT}
+done
+
+# Backup Zimbra Directory
+
+
+tar cvpf $ZDUMPDIR/zimbra_root.tar --exclude=$ZHOME/{bases,backup,data/ldap/mdb/db,db} --exclude={*.lock,*.sock,*.pid} $ZHOME
+
+#Upload backup to ftp
+echo "open 192.168.0.225/pub/Zimbra"> /tmp/ftp.txt
+echo "mirror -c -R $ZDUMPDIR">> /tmp/ftp.txt
+echo "bye">> /tmp/ftp.txt
+lftp -f /tmp/ftp.txt
+rm /tmp/ftp.txt

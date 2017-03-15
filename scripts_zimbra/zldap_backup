@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+ZHOME=/opt/zimbra
+ZBACKUP=/opt/zimbra/backup/ldap
+ZCONFD=$ZHOME/conf
+DATE=`date +"%d%m%y"`
+ZDUMPDIR=$ZBACKUP/$DATE
+
+if [ ! -d $ZDUMPDIR ]; then
+        mkdir -p $ZDUMPDIR
+fi
+
+# LDAP Backup
+$ZHOME/libexec/zmslapcat $ZDUMPDIR
+$ZHOME/libexec/zmslapcat -c $ZDUMPDIR
+$ZHOME/libexec/zmslapcat -a $ZDUMPDIR

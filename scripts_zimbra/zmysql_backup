@@ -1,0 +1,38 @@
+#!/bin/bash
+
+ZHOME=/opt/zimbra
+ZBACKUP=/opt/zimbra/backup/mysql
+ZCONFD=$ZHOME/conf
+DATE=`date +"%d%m%y"`
+ZDUMPDIR=$ZBACKUP/$DATE
+ZMDUMP=/opt/zimbra/mysql/bin/mysqldump
+#ZMLDUMP=/opt/zimbra/logger/mysql/bin/mysqldump
+ZMYSQL=/opt/zimbra/mysql/bin/mysql
+source ~/bin/zmshutil ; zmsetvars
+
+# Check if dump dir exists
+if [ ! -d $ZDUMPDIR ]; then
+        mkdir -p $ZDUMPDIR
+fi
+
+#
+## Backup zimbra main database
+#
+
+$ZMDUMP zimbra -S $mysql_socket -u root --password=$mysql_root_password | gzip -9 - > $ZDUMPDIR/zimbra.sql.gz
+
+#
+## Backup zimbra main mboxes database
+#
+$ZMYSQL -S $mysql_socket -u root --password=$mysql_root_password --batch --skip-column-names -e "show databases" | grep -e mbox -e zimbra > /tmp/mysql.db.list
+for db in `cat /tmp/mysql.db.list`; do
+        $ZMDUMP $db -S $mysql_socket -u root --password=$mysql_root_password | gzip -9 - > $ZDUMPDIR/$db.sql.gz
+    echo "Dumped $db"
+done
+
+#
+## Backup Zimbra logger database
+#
+
+#$ZMDUMP -u root -S $logger_mysql_socket --password=$mysql_logger_root_password zimbra_logger | gzip -9 - > $ZDUMPDIR/zimbra_logger.sql.gz
+#echo "" | mail -s "zbkp-mysql complete" $EMAIL

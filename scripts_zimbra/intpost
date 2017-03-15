@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+
+DIR=/opt/zimbra/postfix/conf
+#in=/opt/zimbra/conf/protected_recipients
+out=/opt/zimbra/postfix/conf/restricted_senders
+
+echo "Enter the username"
+read USER
+
+#echo "$USER@akcia-bank.ru permitted_senders_list" >> $in
+#echo "$USER@akcia-bank.ru added in $in"
+echo "$USER@akcia-bank.ru local_only" >> $out
+echo "$USER@akcia-bank.ru added in $out"
+
+cd $DIR
+#postmap $in
+postmap $out
+
+echo "Map reloaded"
+exit

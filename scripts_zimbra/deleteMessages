@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+
+############################################################## ПЕРЕМЕННЫЕ ##############################################################################
+
+ZIMBRA_BIN=/opt/zimbra/bin				#Путь к исполняемым файлам
+EMAIL=/tmp/email_list					#Список пользователей
+sn=1							#Номер строки в списке пользователей (для счётчика)
+sall=$(wc -l $EMAIL | awk '{ print $1 }')		#Общее количество строк в списке пользователей (для счётчика)
+
+
+
+
+############################################################## СКРИПТ ##################################################################################
+#Запрос ввода даты, ДО которой будут удалены сообщения в ящиках пользователей. Формат - месяц/день/год.
+ 
+echo "Enter the time that you would like to delete messages up to, in mm/dd/yy format. Example 04/10/09:"
+read THEDATE
+
+
+$ZIMBRA_BIN/zmprov -l gaa akcia-bank..ru | sort > $EMAIL   		 #Выгружаем список пользователей в файл и сортируем
+							 
+while read line 							 #Читаем файл со списком пользователей, пока в нём есть строки
+do 
+ echo "Processing $line... ($sn/$sall)"                  		 #Отображаем имя пользователя, чей почтовый ящик сейчас обрабатывается и счётчик (текущий/всего)
+ touch /tmp/deleteOldMessagesList.txt					 #Создаём временный файл, куда будут записываться id удаляемых сообщений и команды на их удаление
+ 
+#Обрабатываем папку "Входящие"
+#Получаем id сообщений
+  
+for i in `$ZIMBRA_BIN/zmmailbox -z -m $line search -l 1000 "in:/Inbox (before:$THEDATE)" | grep conv | sed -e "s/^\s\s*//" | sed -e "s/\s\s*/ /g" | cut -d" " -f2`
+do
+if [[ $i =~ [-]{1} ]]							#Если перед id есть "-", то это сообщение (Message). Если нет "-", то это разговор (Conversation).
+then
+MESSAGEID=${i#-}
+echo "deleteMessage $MESSAGEID" >> /tmp/deleteOldMessagesList.txt	#Пишем команду на удаление сообщения для этого id во временный файл
+else
+echo "deleteConversation $i" >> /tmp/deleteOldMessagesList.txt		#Пишем команду на удаление разговора для этого id во временный файл
+fi
+done
+
+#Обрабатываем папку "Отправленные" по аналогии с папкой "Входящие"
+
+for i in `$ZIMBRA_BIN/zmmailbox -z -m $line search -l 1000 "in:/Sent (before:$THEDATE)" | grep conv | sed -e "s/^\s\s*//" | sed -e "s/\s\s*/ /g" | cut -d" " -f2`
+do
+if [[ $i =~ [-]{1} ]]
+then
+MESSAGEID=${i#-}
+echo "deleteMessage $MESSAGEID" >> /tmp/deleteOldMessagesList.txt
+else
+echo "deleteConversation $i" >> /tmp/deleteOldMessagesList.txt
+fi
+done
+
+#Удаляем сообщения
+
+$ZIMBRA_BIN/zmmailbox -z -m $line < /tmp/deleteOldMessagesList.txt >> /tmp/process.log 		#Удаляем сообщения по id с помощью команд из временного файла, пишем лог-файл
+$ZIMBRA_BIN/zmmailbox -z -m $line emptyDumpster							#Удаляем сообщения без возможности восстановления. В противном случае, файлы сообщений остаются на диске.
+rm -f /tmp/deleteOldMessagesList.txt								#Удаляем временный файл с id сообщений и командами на удаление
+echo "Messages for $line are successfully deleted!"							#Вывод об успешной очистке почтового ящика
+echo												#Вставка пустой строки для разделения
+sn=$[sn + 1]     										#Увеличиваем номер строки на единицу (для счётчика)
+
+done < $EMAIL

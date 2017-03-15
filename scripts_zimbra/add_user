@@ -1,0 +1,104 @@
+#!/bin/bash
+ZMPROV=/opt/zimbra/bin/zmprov
+ZMMAILBOX=/opt/zimbra/bin/zmmailbox
+#export LC_ALL=ru_RU.UTF-8
+export LC_ALL=""
+COMPANY="АКБ \"Акция\" ОАО"
+DOMAIN=akcia-bank.ru
+DZ="a-z1-9\_\.\-"
+DZ1="А-Яа-я\-"
+DZ2="А-Яа-я\-\ "
+DZ3="A-Za-z0-9"
+i=1
+
+echo $LC_ALL
+check_input ()
+{
+  PARAMS=2
+  if [ $# -eq $PARAMS ]; then
+	case "$1" in 
+	*[!$2]*|"") echo "$1 - недопустимое значение." && i=1;;
+		 *) echo "$1 - допустимое значение." && i=0;;
+	esac
+  else 
+	echo "Неверное число аргументов!"
+	return 1
+  fi
+}
+
+create_user ()
+{
+  $ZMPROV ca $USER_ACCOUNT@$DOMAIN $USER_PASSWORD cn "$USER_SURNAME $USER_GIVENNAME $USER_INITIALS" displayName "$USER_SURNAME $USER_GIVENNAME $USER_INITIALS" givenName $USER_GIVENNAME sn $USER_SURNAME initials $USER_INITIALS company "$COMPANY" title "$USER_POSITION" telephoneNumber "$USER_PHONE"
+
+  if [ $? -eq 0 ]; then
+	echo -e "\033[1mПодключаем адресную книгу......\033[0m"
+	$ZMMAILBOX -z -m $USER_ACCOUNT@$DOMAIN cm --view contact -F# "/Akcia" galsync.44qk9vu2@$DOMAIN /_InternalGAL
+	echo -e "\033[1mДобавляем учётную запись в список рассылки "Все сотрудники"........\033[0m"
+	$ZMPROV adlm all@$DOMAIN $USER_ACCOUNT@$DOMAIN
+  else
+	echo "Произошла ошибка при создании учетной записи!" && exit 
+  fi
+
+echo -e "\033[1mНе забудьте добавить запись \033[4m$USER_ACCOUNT\033[0m на внешнем почтовом сервере в файл listfw для возможности получения внешней почты!\033[0m"
+}
+
+
+while [ "$i" = "1" ]
+do
+echo -e "\033[1mВведите название почтового ящика до символа @:\033[0m"
+read USER_ACCOUNT
+check_input $USER_ACCOUNT $DZ
+done
+i=1
+
+while [ "$i" = "1" ]
+do
+echo -e "\033[1mВведите пароль (не менее 6 символов):\033[0m"
+read USER_PASSWORD
+check_input $USER_PASSWORD $DZ3
+done
+i=1
+
+while [ "$i" = "1" ]
+do
+echo -e "\033[1mФамилия:\033[0m"
+read USER_SURNAME
+check_input $USER_SURNAME $DZ1
+done
+i=1
+
+while [ "$i" = "1" ]
+do
+echo -e "\033[1mИмя:\033[0m"
+read USER_GIVENNAME
+check_input $USER_GIVENNAME $DZ1
+done
+i=1
+
+while [ "$i" = "1" ]
+do
+echo -e "\033[1mОтчество:\033[0m"
+read USER_INITIALS
+check_input $USER_INITIALS $DZ1
+done
+i=1
+
+while [ "$i" = "1" ]
+do
+echo -e "\033[1mДолжность:\033[0m"
+read USER_POSITION
+check_input "$USER_POSITION" $DZ2
+done
+i=1
+
+echo -e "\033[1mТелефон (можно пропустить):\033[0m"
+read USER_PHONE
+
+
+echo -e "Будет создан почтовый ящик \033[4m$USER_ACCOUNT@$DOMAIN\033[0m для пользователя $USER_SURNAME $USER_GIVENNAME $USER_INITIALS - "$USER_POSITION" "$COMPANY" (тел. $USER_PHONE)\nПродолжить?[Y/N]"
+read ACCEPT
+if expr "$ACCEPT" : ' *[Yy].*'; then
+	create_user
+else
+	echo "Операция прервана." && exit
+fi

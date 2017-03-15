@@ -1,0 +1,5 @@
+#!/bin/bash
+
+zmprov -l gaa | while read USER; do zmmailbox -z -m $USER cm --view contact -F# "/Akcia" galsync.44qk9vu2@akcia-bank.ru /_InternalGAL; done
+
+
